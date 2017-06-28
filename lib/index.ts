@@ -104,7 +104,6 @@ export namespace Config {
     
     export interface PropSource {
         createChildSource(propKey:string): PropSource 
-        setValue(propKey: string, value: any): boolean
         readonly Proxy : any
     }
     
@@ -165,8 +164,6 @@ export namespace Config {
             }
         }
     
-        setValue(propKey: string, value: any) { return false }
-    
         get Proxy() { return this.proxy}
     }
 
@@ -195,8 +192,7 @@ export namespace Config {
                 }
             }
         }
-    
-        setValue(propKey: string, value: any) { return false}
+
         get Proxy() { return this.proxy }
     }
     
@@ -219,11 +215,6 @@ export namespace Config {
                     return self.obj[propKey]
                 }
             }
-        }
-    
-        setValue(propKey: string, value: any) { 
-            this.obj[propKey] = value
-            return true
         }
     
         get Proxy() { return this.proxy }

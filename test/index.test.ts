@@ -16,6 +16,10 @@ describe("Config", function() {
         }
     }
 
+    let modifiedConfigDefault = JSON.parse(JSON.stringify(nometaConfigDefault));
+    modifiedConfigDefault.node.env = 'xyz'
+    modifiedConfigDefault.mongoose.options.pass = 'abcd'    
+
 
     describe('#getPropValue()', function() {
         it('should return exactly the configured parameters', function() {
@@ -41,10 +45,7 @@ describe("Config", function() {
         });
 
         it('should accept arguments derived from defaults only', function() {
-            let argsConfigDefault = JSON.parse(JSON.stringify(nometaConfigDefault));
-            argsConfigDefault.node.env = 'xyz'
-            argsConfigDefault.mongoose.options.pass = 'abcd'
-            const argsconfig = new Config(argsConfigDefault)
+            const argsconfig = new Config(modifiedConfigDefault)
                                 .addSource(new Config.ArgsSource(minimist([
                                                     '--node-extra=EXTRA', 
                                                     '--node-env=development', 
@@ -55,10 +56,7 @@ describe("Config", function() {
         })
 
         it('should accept environment variables derived from defaults only', function() {
-            let envConfigDefault = JSON.parse(JSON.stringify(nometaConfigDefault));
-            envConfigDefault.node.env = 'xyz'
-            envConfigDefault.mongoose.options.pass = 'abcd'
-            const envconfig = new Config(envConfigDefault)
+            const envconfig = new Config(modifiedConfigDefault)
                                 .addSource(new Config.EnvSource({
                                         NODE_EXTRA:'EXTRA', 
                                         NODE_ENV:'development', 
@@ -69,10 +67,7 @@ describe("Config", function() {
         })
 
         it('should accept object variables derived from defaults only', function() {
-            let objConfigDefault = JSON.parse(JSON.stringify(nometaConfigDefault));
-            objConfigDefault.node.env = 'xyz'
-            objConfigDefault.mongoose.options.pass = 'abcd'
-            const objconfig = new Config(objConfigDefault)
+            const objconfig = new Config(modifiedConfigDefault)
                                 .addSource(new Config.ObjSource({
                                         node: { extra : 'EXTRA', env: 'development'},
                                         mongoose: { options: { pass: 'somepass'}}
@@ -83,5 +78,35 @@ describe("Config", function() {
         }) 
 
     });
+
+
+    describe('#setPropValue()', function() {
+        it('should allow setting of values for existing properties', function() {
+            const setconfig = new Config(modifiedConfigDefault)
+            setconfig.Value.mongoose.options.pass = "somepass"
+            setconfig.Value.node.env = "development"
+            assert.equal("somepass", setconfig.Value.mongoose.options.pass)
+            assert.equal('undefined', typeof setconfig.Value.node.extra)
+            assert.deepStrictEqual(nometaConfigDefault, setconfig.Value)
+        });
+
+        it('should allow setting of a bag of properties', function() {
+            const setconfig = new Config(modifiedConfigDefault)
+            setconfig.setValue({
+                    node: { env: 'development'},
+                    mongoose: { options: { pass: 'somepass'}}
+            })
+            assert.equal("somepass", setconfig.Value.mongoose.options.pass)
+            assert.equal('undefined', typeof setconfig.Value.node.extra)
+            assert.deepStrictEqual(nometaConfigDefault, setconfig.Value)
+        });
+
+        it('should not allow setting of values for arbitrary properties', function() {
+            const setconfig = new Config(modifiedConfigDefault)
+            assert.throws(() => setconfig.Value.node.extra = 'EXTRA', /extra not a valid config property/)
+        });
+
+    });
+
 
 })
