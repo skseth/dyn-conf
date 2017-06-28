@@ -1,9 +1,8 @@
-import * as minimist from 'minimist'
 
 export class Config implements Config.Prop {
     private props: Map<string,Config.Prop> = new Map()
     private secretPropNames: string[] 
-    private sources: Config.PropSource[]
+    private sources: Config.PropSource[] = []
     private secretSource: Config.SecretSource
     private proxy: any
 
@@ -143,16 +142,16 @@ export namespace Config {
     export class ArgsSource implements PropSource {
         private proxy: any
     
-        constructor(public argprefix: string = "", public args: any = {}) {
+        constructor(private args: any = {}, public argprefix: string = "") {
             this.proxy = new Proxy({}, this.Handler)
         }
     
         createChildSource(propKey:string) {
-            return new ArgsSource(this.childName(propKey), this.args)
+            return new ArgsSource(this.args, this.childName(propKey))
         }
     
         private childName(propKey: string) {
-            return `${this.argprefix}-${propKey.toLowerCase()}`
+            return this.argprefix? `${this.argprefix}-${propKey.toLowerCase()}` : propKey.toLowerCase()
         }
     
         private get Handler() {
@@ -174,16 +173,16 @@ export namespace Config {
     export class EnvSource implements PropSource {
         private proxy: any
     
-        constructor(public envprefix: string = "", public env: any = {}) {
+        constructor(public env: any = {}, public envprefix: string = "") {
             this.proxy = new Proxy({}, this.Handler)
         }
     
         createChildSource(propKey:string) {
-            return new EnvSource(this.childName(propKey), this.env)
+            return new EnvSource(this.env, this.childName(propKey))
         }
     
         private childName(propKey: string) {
-            return `${this.envprefix}_${propKey.toLowerCase()}`
+            return this.envprefix ? `${this.envprefix}_${propKey.toUpperCase()}` : propKey.toUpperCase()
         }
     
         private get Handler() {
