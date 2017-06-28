@@ -1,6 +1,6 @@
 {
     "name": "dyn-conf",
-    "version": "1.0.0-alpha",
+    "version": "1.0.0",
     "description": "Hierarchical configuration with indirection for secrets, and change notifications",
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
@@ -21,17 +21,17 @@
         "type": "git",
         "url": "https://github.com/skseth/dyn-conf"
     },
-    "devDependencies": {
-        "@types/minimist": "^1.2.0",
-        "@types/mocha": "^2.2.41",
-        "@types/node": "^8.0.4",
-        "codecov": "^2.2.0",
-        "mocha": "^3.4.2",
-        "nyc": "^11.0.3",
-        "ts-node": "^3.1.0",
-        "typescript": "^2.4.1"
-    },
     "dependencies": {
         "minimist": "^1.2.0"
+    },
+    "devDependencies": {
+        "@types/minimist": "^1.2.0",
+        "@types/mocha": "^2.2.40",
+        "@types/node": "^7.0.12",
+        "codecov": "^2.1.0",
+        "mocha": "^3.2.0",
+        "nyc": "^10.2.0",
+        "ts-node": "^3.0.2",
+        "typescript": "^2.2.2"
     }
 }
