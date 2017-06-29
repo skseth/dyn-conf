@@ -2,14 +2,16 @@
     "name": "dyn-conf",
     "version": "1.0.0-alpha",
     "description": "Hierarchical configuration with indirection for secrets, and change notifications",
-    "main": "out/dist/index.js",
-    "types": "out/dist/index.d.ts",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
-        "prepublish": "npm run tsc",
         "test": "TS_NODE_PROJECT=src mocha",
         "test:cov": "TS_NODE_PROJECT=src nyc mocha",
         "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov && codecov -f out/coverage.lcov",
-        "tsc": "tsc -p src/tsconfig.json"
+        "compile": "tsc -p src/tsconfig.json",
+        "clean": "rm -rf out dist",
+        "prepublish": "npm run clean && npm run compile",
+        "ci": "npm run clean && npm run test:cov"
     },
     "keywords": [
         "configuration",
