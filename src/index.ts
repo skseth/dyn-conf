@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events'
 
 export class Config implements Config.Prop {
     private props: Map<string,Config.Prop> = new Map()
@@ -5,6 +6,8 @@ export class Config implements Config.Prop {
     private sources: Config.PropSource[] = []
     private secretSource: Config.SecretSource
     private proxy: any
+    private changeEmitter = new EventEmitter()
+    private parent:Config
 
     constructor(private values:any) {
         const meta = values.__config_meta__
@@ -19,6 +22,11 @@ export class Config implements Config.Prop {
 
     setSecretSource(secretSource: Config.SecretSource) {
         this.secretSource = secretSource
+        return this
+    }
+
+    setParent(parent:Config) {
+        this.parent = parent
         return this
     }
 
@@ -41,6 +49,7 @@ export class Config implements Config.Prop {
             if (this.values[propKey] instanceof Object) return new Config(this.values[propKey])
                                                                     .setSourcesWithChild(this.sources, propKey)
                                                                     .setSecretSource(this.secretSource)
+                                                                    .setParent(this)
 
             if (this.secretPropNames.indexOf(propKey) >= 0) return new Config.SecretProp(this.values[propKey], propKey, this.sources, this.secretSource)
 
@@ -60,16 +69,26 @@ export class Config implements Config.Prop {
         return this.getProp(propKey).Value
     }
 
-    setValue(value: any) {
+    setValue(value: any, propogateToParent=true) {
         for (const propKey in value) {
             this.setPropValue(propKey, value[propKey])
         }
 
+        this.emitChange(propogateToParent)
         return true
     }
 
     setPropValue(propKey: string, value: any): boolean {
-        return this.getProp(propKey).setValue(value)
+        return this.getProp(propKey).setValue(value, false)
+    }
+
+    emitChange(propogateToParent=true) {
+        this.changeEmitter.emit('change', this.Value)
+        if (propogateToParent && this.parent) this.parent.emitChange(true)
+    }
+
+    registerChangeHandler(handler:Config.ChangeHandler) {
+        this.changeEmitter.on('change', handler)
     }
 
     private get Handler() {
@@ -79,9 +98,16 @@ export class Config implements Config.Prop {
                 if (propKey in self.values) {
                     return self.getPropValue(propKey)
                 }
+                else if (propKey === 'onChange') {
+                    return function(handler:Config.ChangeHandler) {
+                        return self.registerChangeHandler(handler)
+                    }
+                }
             },
             set(target: any, propKey: any, value : any, receiver : any): boolean {
-                return self.setPropValue(propKey, value )
+                const retval = self.setPropValue(propKey, value )
+                self.emitChange(true)
+                return retval
             }
         }
     }
@@ -98,7 +124,7 @@ export namespace Config {
     }
 
     export interface Prop {
-        setValue(value: any): boolean
+        setValue(value: any, propogateToParent:boolean): boolean
         readonly Value : any
     }
     
@@ -106,6 +132,8 @@ export namespace Config {
         createChildSource(propKey:string): PropSource 
         readonly Proxy : any
     }
+
+    export type ChangeHandler = (config:any) => void
     
     export class PrimitiveProp implements Prop {
     

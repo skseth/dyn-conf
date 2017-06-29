@@ -223,4 +223,52 @@ describe("Config", function() {
         });
     });
 
+    describe('#onChange', function() {
+        let nometaConfigDefault = {
+            node: {
+                env: 'development'
+            },
+            mongoose: {
+                uri: 'mongodb://localhost/family',
+                options: {
+                    user: 'someuser',
+                    pass: 'somepass'
+                }
+            }
+        }
+
+        it('should invoke change handler on setValue', function() {
+            const nometaconfig = new Config(nometaConfigDefault);
+            let newmongoose: any
+            nometaconfig.Value.mongoose.onChange(function(config:any) {
+                newmongoose = config
+            })
+
+            nometaconfig.setValue({mongoose: { options: { pass: 'someotherpass'} }})
+
+            assert.equal('someotherpass', newmongoose.options.pass)
+        });
+
+        it('should invoke change handler on parent when prop changed', function() {
+            const nometaconfig = new Config(nometaConfigDefault);
+            let newmongoose: any
+            let newconfig: any
+            
+            nometaconfig.Value.mongoose.onChange(function(config:any) {
+                newmongoose = config
+            })
+            
+            nometaconfig.Value.onChange(function(config:any) {
+                newconfig = config
+            })
+
+            nometaconfig.Value.mongoose.options.pass = 'someotherpass'
+
+            assert.equal('someotherpass', newmongoose.options.pass)
+            assert.equal('someotherpass', newconfig.mongoose.options.pass)
+        });
+
+
+    });
+
 })
