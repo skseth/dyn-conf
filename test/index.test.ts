@@ -24,8 +24,17 @@ describe("Config", function() {
     describe('#getPropValue()', function() {
         it('should return exactly the configured parameters', function() {
             const nometaconfig = new Config(nometaConfigDefault);
+            assert.equal('someuser', nometaconfig.Value.mongoose.options.user)            
             assert.deepStrictEqual(nometaConfigDefault, nometaconfig.Value)
         });
+
+        it('should return undefined for non-existent properties', function() {
+            const nometaconfig = new Config(nometaConfigDefault);
+            assert.equal('undefined', typeof nometaconfig.Value.node.extra)
+            assert.equal('undefined', typeof nometaconfig.Value.inspect)
+            assert.equal('undefined', typeof nometaconfig.Value[Symbol.toStringTag])
+        });
+
 
         it('should replace secret with actual value', function() {
             const expectedPass = 'somepass'
@@ -108,5 +117,110 @@ describe("Config", function() {
 
     });
 
+
+    describe('#ArgsSource', function() {
+        it('should return set properties', function() {
+            const argSource = new Config.ArgsSource({_: {}, a: 20, 'b-c': 30})
+            assert.equal(20, argSource.Proxy.a)
+            assert.equal('undefined', typeof argSource.Proxy.b)
+        });
+
+        it('should not have any properties for empty object', function() {
+            const argSource = new Config.ArgsSource()
+            assert.deepStrictEqual({}, argSource.Proxy)
+        });
+
+        it('should create child source', function() {
+            const argSource = new Config.ArgsSource({_: {}, a: 20, 'b-c': 30})
+            const childSource = argSource.createChildSource('b')
+            assert.equal(30, childSource.Proxy.c)
+        });
+    });
+
+    describe('#EnvSource', function() {
+        it('should return set properties', function() {
+            const envSource = new Config.EnvSource({A: 20, B_C: 30})
+            assert.equal(20, envSource.Proxy.a)
+            assert.equal('undefined', typeof envSource.Proxy.b)
+        });
+
+        it('should not have any properties for empty object', function() {
+            const envSource = new Config.EnvSource()
+            assert.deepStrictEqual({}, envSource.Proxy)
+        });
+
+        it('should create child source', function() {
+            const envSource = new Config.EnvSource({A: 20, B_C: 30})
+            const childSource = envSource.createChildSource('b')
+            assert.equal(30, childSource.Proxy.c)
+        });
+    });
+
+
+    describe('#ObjSource', function() {
+        it('should return set properties', function() {
+            const objSource = new Config.ObjSource({a: 20, b: {c: 30}})
+            assert.equal(20, objSource.Proxy.a)
+            assert.equal(30, objSource.Proxy.b.c)
+        });
+
+        it('should not have any properties for empty object', function() {
+            const objSource = new Config.ObjSource()
+            assert.deepStrictEqual({}, objSource.Proxy)
+        });
+
+
+        it('should create child source', function() {
+            const objSource = new Config.ObjSource({a: 20, b: {c: 30}})
+            const childSource = objSource.createChildSource('b')
+            assert.equal(30, childSource.Proxy.c)
+        });
+    });
+
+    describe('#PrimitiveProp', function() {
+        it('should return default value if no source', function() {
+            const prop = new Config.PrimitiveProp(20, "someprop")
+            assert.equal(20, prop.Value)
+        });
+
+        it('should return first source value with property', function() {
+            const objSource1 = new Config.ObjSource({someotherprop: 40})
+            const objSource2 = new Config.ObjSource({someprop: 30})            
+            const prop = new Config.PrimitiveProp(20, "someprop", [objSource1, objSource2])
+            assert.equal(30, prop.Value)
+        });
+
+        it('should return dynamic value when set', function() {
+            const objSource1 = new Config.ObjSource({someotherprop: 40})
+            const objSource2 = new Config.ObjSource({someprop: 30})            
+            const prop = new Config.PrimitiveProp(20, "someprop", [objSource1, objSource2])
+            assert.equal(30, prop.Value)
+            prop.setValue(50)
+            assert.equal(50, prop.Value)
+        });
+    });
+
+    describe('#SecretProp', function() {
+        it('should return default value if no secret source', function() {
+            const prop = new Config.SecretProp("sekrit", "someprop")
+            assert.equal("sekrit", prop.Value)
+        });
+
+        it('should return secret value from secret source', function() {
+            const objSource = new Config.ObjSource({someprop: "sekrit"})
+            const prop = new Config.SecretProp("oldsekrit", "someprop", [objSource], { 
+                        getSecret: function(secretname) {
+                            if (secretname === "sekrit") {
+                                return "theactualsecret"
+                            }
+                            else if (secretname === "dynamo") {
+                                return "dynamosecret"
+                            }
+                        }})
+            assert.equal("theactualsecret", prop.Value)
+            prop.setValue("dynamo")
+            assert.equal("dynamosecret", prop.Value)            
+        });
+    });
 
 })

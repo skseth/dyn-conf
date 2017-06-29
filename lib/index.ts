@@ -28,7 +28,7 @@ export class Config implements Config.Prop {
     }
 
     private setSourcesWithChild(sources:Config.PropSource[], propKey: string) {
-        if (sources) sources.map(source => this.sources.push(source.createChildSource(propKey)))
+        sources.map(source => this.sources.push(source.createChildSource(propKey)))
         return this
     }
 
