@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { Config } from '../lib';
+import { Config } from '../src';
 import * as minimist from 'minimist'
 
 describe("Config", function() {

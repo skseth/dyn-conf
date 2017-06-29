@@ -2,14 +2,14 @@
     "name": "dyn-conf",
     "version": "1.0.0-alpha",
     "description": "Hierarchical configuration with indirection for secrets, and change notifications",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "out/dist/index.js",
+    "types": "out/dist/index.d.ts",
     "scripts": {
         "prepublish": "npm run tsc",
-        "test": "mocha",
-        "test:cov": "nyc mocha",
-        "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-        "tsc": "tsc"
+        "test": "TS_NODE_PROJECT=src mocha",
+        "test:cov": "TS_NODE_PROJECT=src nyc mocha",
+        "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov && codecov -f out/coverage.lcov",
+        "tsc": "tsc -p src/tsconfig.json"
     },
     "keywords": [
         "configuration",
@@ -33,5 +33,27 @@
     },
     "dependencies": {
         "minimist": "^1.2.0"
+    },
+    "nyc": {
+        "include": [
+            "src/*.ts"
+        ],
+        "exclude": [
+            "examples",
+            "dist"
+        ],
+        "extension": [
+            ".ts"
+        ],
+        "require": [
+            "ts-node/register"
+        ],
+        "reporter": [
+            "lcov",
+            "text"
+        ],
+        "report-dir": "out/coverage",
+        "temp-directory": "out/.nyc_output",
+        "all": true
     }
 }

@@ -1,3 +1,6 @@
-node_modules/
-lib/
+.npmignore
+src/
 test/
+examples/
+out/
+.travis.yml
