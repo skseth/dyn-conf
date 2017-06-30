@@ -5,13 +5,14 @@
     "main": "dist/index.js",
     "types": "dist/index.d.ts",
     "scripts": {
+        "lint": "tslint {src,test}/**/*.ts",
         "test": "TS_NODE_PROJECT=src mocha",
         "test:cov": "TS_NODE_PROJECT=src nyc mocha",
         "coverage": "nyc report --reporter=text-lcov > out/coverage.lcov && codecov -f out/coverage.lcov",
         "compile": "tsc -p src/tsconfig.json",
         "clean": "rm -rf out dist",
         "prepublish": "npm run clean && npm run compile",
-        "ci": "npm run clean && npm run test:cov"
+        "ci": "npm run clean && npm run lint && npm run test:cov"
     },
     "keywords": [
         "configuration",
@@ -32,6 +33,7 @@
         "mocha": "^3.4.2",
         "nyc": "^11.0.3",
         "ts-node": "^3.1.0",
+        "tslint": "^5.4.3",
         "typescript": "^2.4.1"
     },
     "dependencies": {},
